@@ -1,0 +1,51 @@
+package com.vrq.revolut;
+
+import com.vrq.revolut.core.Account;
+import com.vrq.revolut.core.Transfer;
+import com.vrq.revolut.db.AccountDao;
+import com.vrq.revolut.db.TransferDao;
+import com.vrq.revolut.resources.AccountResource;
+import com.vrq.revolut.resources.TransferResource;
+import io.dropwizard.Application;
+import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.hibernate.HibernateBundle;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
+
+public class TransferApplication extends Application<TransferAppConfiguration> {
+
+    private final HibernateBundle<TransferAppConfiguration> hibernate = new HibernateBundle<TransferAppConfiguration>(Account.class, Transfer.class) {
+        @Override
+        public DataSourceFactory getDataSourceFactory(TransferAppConfiguration configuration) {
+            return configuration.getDataSourceFactory();
+        }
+    };
+
+    public static void main(final String[] args) throws Exception {
+        new TransferApplication().run(args);
+    }
+
+    @Override
+    public String getName() {
+        return "transfers-app";
+    }
+
+    @Override
+    public void initialize(final Bootstrap<TransferAppConfiguration> bootstrap) {
+        bootstrap.addBundle(hibernate);
+    }
+
+    @Override
+    public void run(final TransferAppConfiguration configuration,
+                    final Environment environment) {
+
+        final AccountDao accountDao = new AccountDao(hibernate.getSessionFactory());
+        final TransferDao transferDao = new TransferDao(hibernate.getSessionFactory());
+        final AccountResource accountResource = new AccountResource(accountDao);
+        final TransferResource transferResource = new TransferResource(transferDao);
+        environment.jersey().register(accountResource);
+        environment.jersey().register(transferResource);
+    }
+
+
+}
