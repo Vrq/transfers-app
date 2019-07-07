@@ -22,6 +22,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.lang.String.format;
 import static java.math.BigDecimal.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,7 +44,7 @@ public class TransferApplicationIT {
     @Order(1)
     void getAccountsWithFreshDbReturnsEmptyList() {
 
-        Response response = client.target(String.format(ACCOUNTS_URI, RULE.getLocalPort()))
+        Response response = client.target(format(ACCOUNTS_URI, RULE.getLocalPort()))
                 .request()
                 .get();
         List<Account> accounts = response.readEntity(accountListType);
@@ -64,7 +65,7 @@ public class TransferApplicationIT {
         for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++) {
             service.submit(() -> {
                 Response response = client.target(
-                        String.format(ACCOUNTS_URI, RULE.getLocalPort()))
+                        format(ACCOUNTS_URI, RULE.getLocalPort()))
                         .request()
                         .post(Entity.json(new Account()));
 
@@ -74,7 +75,7 @@ public class TransferApplicationIT {
         }
         latch.await();
 
-        Response getAllResponse = client.target(String.format(ACCOUNTS_URI, RULE.getLocalPort()))
+        Response getAllResponse = client.target(format(ACCOUNTS_URI, RULE.getLocalPort()))
                 .request()
                 .get();
         List<Account> accounts = getAllResponse.readEntity(accountListType);
@@ -85,7 +86,7 @@ public class TransferApplicationIT {
     @Order(3)
     void getTransfersWithoutAnyTransfersMadeReturnsEmptyList() {
 
-        Response response = client.target(String.format(TRANSFERS_URI, RULE.getLocalPort()))
+        Response response = client.target(format(TRANSFERS_URI, RULE.getLocalPort()))
                 .request()
                 .get();
         List<Transfer> transfers = response.readEntity(transfersListType);
@@ -104,10 +105,12 @@ public class TransferApplicationIT {
         CountDownLatch latch = new CountDownLatch(NUMBER_OF_TRANSFERS);
         ExecutorService service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
+        client.target(format(ACCOUNTS_URI+"/1/deposit/100000", RULE.getLocalPort()))
+                .request()
+                .post(Entity.json(null));
         for (int i = 0; i < NUMBER_OF_TRANSFERS; i++) {
             service.submit(() -> {
-                Response response = client.target(
-                        String.format(TRANSFERS_URI, RULE.getLocalPort()))
+                Response response = client.target(format(TRANSFERS_URI, RULE.getLocalPort()))
                         .request()
                         .post(Entity.json(new Transfer(SINGLE_TRANSFER_AMOUNT, new Account(1), new Account(2))));
 
@@ -117,13 +120,20 @@ public class TransferApplicationIT {
         }
         latch.await();
 
-        Response getAllResponse = client.target(String.format(TRANSFERS_URI, RULE.getLocalPort()))
+        Response getAllTransfers = client.target(format(TRANSFERS_URI, RULE.getLocalPort()))
                 .request()
                 .get();
-        List<Transfer> transfers = getAllResponse.readEntity(transfersListType);
+        Response getAccount1 = client.target(format(ACCOUNTS_URI+"/1", RULE.getLocalPort()))
+                .request()
+                .get();
+        Response getAccount2 = client.target(format(ACCOUNTS_URI+"/2", RULE.getLocalPort()))
+                .request()
+                .get();
+        List<Transfer> transfers = getAllTransfers.readEntity(transfersListType);
         assertThat(transfers.size()).isEqualTo(NUMBER_OF_TRANSFERS);
+        assertThat(getAccount1.readEntity(Account.class).getBalance()).isEqualTo(BigDecimal.valueOf(75000));
+        assertThat(getAccount2.readEntity(Account.class).getBalance()).isEqualTo(BigDecimal.valueOf(25000));
     }
-
 
 
 }

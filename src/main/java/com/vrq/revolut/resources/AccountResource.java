@@ -6,11 +6,9 @@ import com.vrq.revolut.db.AccountDao;
 import io.dropwizard.hibernate.UnitOfWork;
 
 import javax.validation.Valid;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Path("/accounts")
@@ -33,5 +31,19 @@ public class AccountResource {
     @UnitOfWork
     public List<Account> getAll(){
         return accountDao.getAll();
+    }
+
+    @GET
+    @Path("/{id}")
+    @UnitOfWork
+    public Account getById(@PathParam("id") long id){
+        return accountDao.getById(id);
+    }
+
+    @POST
+    @Path("/{id}/deposit/{amount}")
+    @UnitOfWork
+    public Account deposit(@PathParam("id") long accountId, @PathParam("amount")BigDecimal depositAmount){
+        return accountDao.deposit(accountId, depositAmount);
     }
 }

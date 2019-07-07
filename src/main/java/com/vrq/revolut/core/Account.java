@@ -9,10 +9,45 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
+import static java.math.BigDecimal.valueOf;
+
 
 @Entity
 @Table(name = "ACCOUNTS")
 public class Account {
+    @Id
+    @Column(name = "ID", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty
+    private long id;
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
+
+    @Column(name = "BALANCE", nullable = false)
+    @NotNull
+    @JsonProperty
+    private BigDecimal balance = valueOf(0);
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fromAccount")
+    @JsonIgnoreProperties({"fromAccount", "toAccount"})
+    @JsonProperty
+    private List<Transfer> transfersFrom;
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "toAccount")
+    @JsonIgnoreProperties({"fromAccount", "toAccount"})
+    @JsonProperty
+    private List<Transfer> transfersTo;
+
+    public Account() {
+        // Jackson deserialization
+    }
+
+    public Account(long id) {
+        this.id = id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -35,38 +70,5 @@ public class Account {
 
     public BigDecimal getBalance() {
         return balance;
-    }
-
-    @Id
-    @Column(name = "ID", nullable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonProperty
-    private long id;
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
-
-    @Column(name = "BALANCE", nullable = false)
-    @NotNull
-    @JsonProperty
-    private BigDecimal balance = BigDecimal.valueOf(500000);
-
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "fromAccount")
-    @JsonIgnoreProperties({"fromAccount", "toAccount"})
-    @JsonProperty
-    private List<Transfer> transfersFrom;
-
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "toAccount")
-    @JsonIgnoreProperties({"fromAccount", "toAccount"})
-    @JsonProperty
-    private List<Transfer> transfersTo;
-
-    public Account() {
-        // Jackson deserialization
-    }
-
-    public Account(long id) {
-        this.id = id;
     }
 }
