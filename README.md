@@ -14,3 +14,10 @@ Some caveats:
 - the TransferApplicationIntegrationTests is testing correct concurrent processing
 and shares application instance and db - in the future it should be broken
 down into scenarios that recreate the testing environment every time
+
+Technologies used:
+---
+- Dropwizard 1.3.12 (includes: Jetty, Jersey, Jackson)
+- Hibernate 
+- H2 database
+- JUnit 5

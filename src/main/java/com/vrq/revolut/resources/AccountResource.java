@@ -5,7 +5,6 @@ import com.vrq.revolut.core.Account;
 import com.vrq.revolut.db.AccountDao;
 import io.dropwizard.hibernate.UnitOfWork;
 
-import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.math.BigDecimal;
@@ -23,8 +22,8 @@ public class AccountResource {
 
     @POST
     @UnitOfWork
-    public Account add(@Valid Account account) {
-        return accountDao.create(account);
+    public Account create() {
+        return accountDao.create();
     }
 
     @GET

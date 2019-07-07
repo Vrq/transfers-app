@@ -20,8 +20,8 @@ public class AccountDao extends AbstractDAO<Account> {
         return account;
     }
 
-    public Account create(Account account) {
-        return persist(account);
+    public Account create() {
+        return persist(new Account());
     }
 
     public Account update(Account updatedAccount) {

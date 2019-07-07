@@ -39,7 +39,7 @@ public class TransferResource {
         Account fromAccount = accountDao.findById(transfer.getFromAccount().getId());
         Account toAccount = accountDao.findById(transfer.getToAccount().getId());
         if(fromAccount.getBalance().compareTo(transfer.getAmount())< 0) {
-            throw new WebApplicationException("Insufficient funds in the sender account",Response.Status.BAD_REQUEST);
+            throw new WebApplicationException("Insufficient balance of the sender account",Response.Status.BAD_REQUEST);
 
 
         }

@@ -32,8 +32,8 @@ public class TransferApplicationIntegrationTests {
 
     private static final DropwizardAppExtension<TransferAppConfiguration> RULE =
             new DropwizardAppExtension<>(TransferApplication.class, ResourceHelpers.resourceFilePath("test-config.yml"));
-    private static final String ACCOUNTS_URI = "http://localhost:%d/accounts";
-    private static final String TRANSFERS_URI = "http://localhost:%d/transfers";
+    private static final String ACCOUNTS_URI = "http://localhost:%d/accounts/";
+    private static final String TRANSFERS_URI = "http://localhost:%d/transfers/";
     private static Client client = new JerseyClientBuilder().build();
     private static GenericType<List<Account>> accountListType = new GenericType<List<Account>>() {
     };
@@ -55,13 +55,13 @@ public class TransferApplicationIntegrationTests {
     @Test
     @Order(2)
     void postAccountRunParallelMultipleTimesCorrectlyCreatesAccounts() throws InterruptedException {
-        final int NUMBER_OF_ACCOUNTS = 200;
-        final int NUMBER_OF_THREADS = 10;
+        final int numberOfAccounts = 200;
+        final int numberOfThreads = 10;
 
-        CountDownLatch latch = new CountDownLatch(NUMBER_OF_ACCOUNTS);
-        ExecutorService service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+        CountDownLatch latch = new CountDownLatch(numberOfAccounts);
+        ExecutorService service = Executors.newFixedThreadPool(numberOfThreads);
 
-        for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++) {
+        for (int i = 0; i < numberOfAccounts; i++) {
             service.submit(() -> {
                 Response response = client.target(
                         format(ACCOUNTS_URI, RULE.getLocalPort()))
@@ -78,7 +78,7 @@ public class TransferApplicationIntegrationTests {
                 .get();
         List<Account> accounts = getAllResponse.readEntity(accountListType);
 
-        assertThat(accounts.size()).isEqualTo(NUMBER_OF_ACCOUNTS);
+        assertThat(accounts.size()).isEqualTo(numberOfAccounts);
     }
 
     @Test
@@ -96,24 +96,23 @@ public class TransferApplicationIntegrationTests {
     @Test
     @Order(4)
     void postTransferInvokedParallelMultipleTimesResultsInCorrectBalances() throws InterruptedException {
-        final int NUMBER_OF_TRANSFERS = 100;
-        final BigDecimal SINGLE_TRANSFER_AMOUNT = valueOf(250);
-        final int NUMBER_OF_THREADS = 10;
+        final int numberOfTransfers = 100;
+        final BigDecimal singleTransferAmount = valueOf(250);
+        final int numberOfThreads = 10;
+        final int depositAmount = 100000;
+        final long accountId1 = 1;
+        final long accountId2 = 2;
+        CountDownLatch latch = new CountDownLatch(numberOfTransfers);
+        ExecutorService service = Executors.newFixedThreadPool(numberOfThreads);
 
-        CountDownLatch latch = new CountDownLatch(NUMBER_OF_TRANSFERS);
-        ExecutorService service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
-
-        client.target(format(ACCOUNTS_URI + "/1/deposit/100000", RULE.getLocalPort()))
+        client.target(format(ACCOUNTS_URI + accountId1 + "/deposit/"+ depositAmount, RULE.getLocalPort()))
                 .request()
                 .post(Entity.json(null));
-        for (int i = 0; i < NUMBER_OF_TRANSFERS; i++) {
-            int finalI = i;
-            System.out.println("This is outside : " + finalI);
+        for (int i = 0; i < numberOfTransfers; i++) {
             service.submit(() -> {
                 Response response = client.target(format(TRANSFERS_URI, RULE.getLocalPort()))
                         .request()
-                        .post(Entity.json(new Transfer(SINGLE_TRANSFER_AMOUNT, new Account(1), new Account(2))));
-                System.out.println("This is outside : " + finalI);
+                        .post(Entity.json(new Transfer(singleTransferAmount, new Account(accountId1), new Account(accountId2))));
                 latch.countDown();
                 assertThat(response.getStatus()).isEqualTo(200);
             });
@@ -123,17 +122,17 @@ public class TransferApplicationIntegrationTests {
         Response getAllTransfers = client.target(format(TRANSFERS_URI, RULE.getLocalPort()))
                 .request()
                 .get();
-        Response getAccount1 = client.target(format(ACCOUNTS_URI + "/1", RULE.getLocalPort()))
+        Response getAccount1 = client.target(format(ACCOUNTS_URI + accountId1, RULE.getLocalPort()))
                 .request()
                 .get();
-        Response getAccount2 = client.target(format(ACCOUNTS_URI + "/2", RULE.getLocalPort()))
+        Response getAccount2 = client.target(format(ACCOUNTS_URI + accountId2, RULE.getLocalPort()))
                 .request()
                 .get();
         List<Transfer> transfers = getAllTransfers.readEntity(transfersListType);
         BigDecimal balance1 = getAccount1.readEntity(Account.class).getBalance();
         BigDecimal balance2 = getAccount2.readEntity(Account.class).getBalance();
 
-        assertThat(transfers.size()).isEqualTo(NUMBER_OF_TRANSFERS);
+        assertThat(transfers.size()).isEqualTo(numberOfTransfers);
         assertThat(balance1).isEqualTo(valueOf(75000).setScale(2));
         assertThat(balance2).isEqualTo(valueOf(25000).setScale(2));
     }
@@ -141,34 +140,30 @@ public class TransferApplicationIntegrationTests {
     @Test
     @Order(5)
     void postDepositParallelMultipleTimesResultsInCorrectlyIncreasedAccountBalance() throws InterruptedException {
-        final int NUMBER_OF_DEPOSITS = 200;
-        final long DEPOSIT_AMOUNT = 7000000;
-        final int NUMBER_OF_THREADS = 10;
-        final long ACCOUNT_ID = 3;
+        final int numberOfDeposits = 200;
+        final long depositAmount = 7000000;
+        final int numberOfThreads = 10;
+        final long accountId = 3;
 
-        CountDownLatch latch = new CountDownLatch(NUMBER_OF_DEPOSITS);
-        ExecutorService service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+        CountDownLatch latch = new CountDownLatch(numberOfDeposits);
+        ExecutorService service = Executors.newFixedThreadPool(numberOfThreads);
 
-        for (int i = 0; i < NUMBER_OF_DEPOSITS; i++) {
-            int finalI = i;
-            System.out.println("This is outside : " + finalI);
-
+        for (int i = 0; i < numberOfDeposits; i++) {
             service.submit(() -> {
-                Response response = client.target(format(ACCOUNTS_URI + "/" + ACCOUNT_ID + "/deposit/" + DEPOSIT_AMOUNT, RULE.getLocalPort()))
+                Response response = client.target(format(ACCOUNTS_URI + accountId + "/deposit/" + depositAmount, RULE.getLocalPort()))
                         .request()
                         .post(Entity.json(null));
-                System.out.println("This is inside: " + finalI);
                 latch.countDown();
                 assertThat(response.getStatus()).isEqualTo(200);
             });
         }
         latch.await();
-        Response getAllResponse = client.target(format(ACCOUNTS_URI + "/" + ACCOUNT_ID, RULE.getLocalPort()))
+        Response getAllResponse = client.target(format(ACCOUNTS_URI + accountId, RULE.getLocalPort()))
                 .request()
                 .get();
         Account depositedAccount = getAllResponse.readEntity(Account.class);
 
-        assertThat(depositedAccount.getBalance()).isEqualTo(BigDecimal.valueOf(NUMBER_OF_DEPOSITS*DEPOSIT_AMOUNT).setScale(2));
+        assertThat(depositedAccount.getBalance()).isEqualTo(BigDecimal.valueOf(numberOfDeposits * depositAmount).setScale(2));
     }
 
 }

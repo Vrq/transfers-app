@@ -1,6 +1,5 @@
 package com.vrq.revolut.db;
 
-import com.vrq.revolut.core.Account;
 import com.vrq.revolut.core.Transfer;
 import io.dropwizard.hibernate.AbstractDAO;
 import org.hibernate.SessionFactory;
