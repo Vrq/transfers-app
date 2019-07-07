@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 
 
 @Entity
-@Table(name = "TRANSFERS")
+@Table(name = "transfers")
 public class Transfer {
     @Id
     @Column(name = "ID", nullable = false)
@@ -17,7 +17,7 @@ public class Transfer {
     @JsonProperty
     private long id;
 
-    @Column(name = "AMOUNT", nullable = false)
+    @Column(name = "amount", nullable = false)
     @NotNull
     @JsonProperty
     private BigDecimal amount;

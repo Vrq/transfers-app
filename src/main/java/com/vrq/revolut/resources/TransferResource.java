@@ -8,11 +8,9 @@ import com.vrq.revolut.db.TransferDao;
 import io.dropwizard.hibernate.UnitOfWork;
 
 import javax.validation.Valid;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -32,15 +30,17 @@ public class TransferResource {
     @UnitOfWork
     public Transfer add(@Valid Transfer transfer) {
         if(transfer.getAmount().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("cannot make transfers less than 0");
+            throw new WebApplicationException("Cannot make transfers less than 0",Response.Status.BAD_REQUEST);
         }
         if(transfer.getFromAccount() == null || transfer.getToAccount() == null) {
-            throw new IllegalArgumentException("transfer recipients not specified correctly");
+            throw new WebApplicationException("Transfer recipients not specified correctly",Response.Status.BAD_REQUEST);
+
         }
         Account fromAccount = accountDao.findById(transfer.getFromAccount().getId());
         Account toAccount = accountDao.findById(transfer.getToAccount().getId());
         if(fromAccount.getBalance().compareTo(transfer.getAmount())< 0) {
-            throw new IllegalArgumentException("insuffucient funds in the sender account");
+            throw new WebApplicationException("Insufficient funds in the sender account",Response.Status.BAD_REQUEST);
+
 
         }
         fromAccount.setBalance(fromAccount.getBalance().subtract(transfer.getAmount()));

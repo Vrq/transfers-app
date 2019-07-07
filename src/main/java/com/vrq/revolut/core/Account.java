@@ -13,10 +13,10 @@ import static java.math.BigDecimal.valueOf;
 
 
 @Entity
-@Table(name = "ACCOUNTS")
+@Table(name = "accounts")
 public class Account {
     @Id
-    @Column(name = "ID", nullable = false)
+    @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonProperty
     private long id;
@@ -25,7 +25,7 @@ public class Account {
         this.balance = balance;
     }
 
-    @Column(name = "BALANCE", nullable = false)
+    @Column(name = "balance", nullable = false)
     @NotNull
     @JsonProperty
     private BigDecimal balance = valueOf(0);

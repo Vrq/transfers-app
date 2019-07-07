@@ -37,7 +37,7 @@ public class AccountResource {
     @Path("/{id}")
     @UnitOfWork
     public Account getById(@PathParam("id") long id){
-        return accountDao.getById(id);
+        return accountDao.findById(id);
     }
 
     @POST
