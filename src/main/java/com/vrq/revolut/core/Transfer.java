@@ -23,11 +23,31 @@ public class Transfer {
     @JsonProperty
     private BigDecimal amount;
 
+    public void setFromAccount(Account fromAccount) {
+        this.fromAccount = fromAccount;
+    }
+
+    public void setToAccount(Account toAccount) {
+        this.toAccount = toAccount;
+    }
+
     @ManyToOne
     @JoinColumn(name = "from_account_id")
     @JsonProperty
     @JsonIgnoreProperties({"transfersFrom", "transfersTo"})
     private Account fromAccount;
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public Account getFromAccount() {
+        return fromAccount;
+    }
+
+    public Account getToAccount() {
+        return toAccount;
+    }
 
     @ManyToOne
     @JoinColumn(name = "to_account_id")
@@ -39,16 +59,9 @@ public class Transfer {
         // Jackson deserialization
     }
 
-    public Transfer(long id, BigDecimal amount, Account fromAccount, Account toAccount) {
-        this.id = id;
+    public Transfer(BigDecimal amount, Account fromAccount, Account toAccount) {
         this.amount = amount;
         this.fromAccount = fromAccount;
         this.toAccount = toAccount;
     }
-
-    @JsonProperty
-    public long getId() {
-        return id;
-    }
-
 }

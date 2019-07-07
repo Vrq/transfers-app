@@ -19,6 +19,10 @@ public class AccountDao extends AbstractDAO<Account> {
         return persist(account);
     }
 
+    public Account update(Account updatedAccount) {
+        return persist(updatedAccount);
+    }
+
     public List<Account> getAll() {
         return (List<Account>) currentSession().createCriteria(Account.class).list();
     }

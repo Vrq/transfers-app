@@ -42,7 +42,7 @@ public class TransferApplication extends Application<TransferAppConfiguration> {
         final AccountDao accountDao = new AccountDao(hibernate.getSessionFactory());
         final TransferDao transferDao = new TransferDao(hibernate.getSessionFactory());
         final AccountResource accountResource = new AccountResource(accountDao);
-        final TransferResource transferResource = new TransferResource(transferDao);
+        final TransferResource transferResource = new TransferResource(transferDao, accountDao);
         environment.jersey().register(accountResource);
         environment.jersey().register(transferResource);
     }
