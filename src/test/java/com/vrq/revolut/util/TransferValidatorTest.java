@@ -32,7 +32,7 @@ class TransferValidatorTest {
     }
 
     @Test
-    void validateInsufficientSenderFundsWebApplicationException() {
+    void validateInsufficientSenderFundsThrowsWebApplicationException() {
         Account sender = new Account(1);
         Account receiver = new Account(2);
         sender.setBalance(valueOf(50));
@@ -40,6 +40,17 @@ class TransferValidatorTest {
 
         WebApplicationException thrown = assertThrows(WebApplicationException.class, () ->  transferValidator.validate(testObject, sender,receiver));
         assertEquals("Insufficient balance of the sender account", thrown.getMessage());
+    }
+
+    @Test
+    void validateTransferWithinSameAccountThrowsWebApplicationException() {
+        Account sender = new Account(1);
+        Account receiver = new Account(1);
+        sender.setBalance(valueOf(500));
+        Transfer testObject = new Transfer(valueOf(100), sender, receiver);
+
+        WebApplicationException thrown = assertThrows(WebApplicationException.class, () ->  transferValidator.validate(testObject, sender,receiver));
+        assertEquals("Cannot make transfers from the same to the same account", thrown.getMessage());
     }
 
     @Test
