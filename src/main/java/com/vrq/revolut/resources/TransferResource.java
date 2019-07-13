@@ -13,6 +13,8 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.List;
 
 import static com.vrq.revolut.service.TransferService.performTransfer;
@@ -33,6 +35,7 @@ public class TransferResource {
     @POST
     @UnitOfWork
     public Transfer add(@Valid Transfer transfer) {
+
         Account fromAccount = accountDao.findById(transfer.getFromAccount().getId());
         Account toAccount = accountDao.findById(transfer.getToAccount().getId());
         validate(transfer, fromAccount);

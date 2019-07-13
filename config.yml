@@ -27,4 +27,4 @@ database:
     hibernate.dialect: org.hibernate.dialect.H2Dialect
     hibernate.show_sql: true
     hibernate.generate_statistics: false
-    hibernate.hbm2ddl.auto: create # create db when started - not valid for production
+    hibernate.hbm2ddl.auto: validate # create db when started - not valid for production

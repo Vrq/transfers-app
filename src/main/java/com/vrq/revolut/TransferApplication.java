@@ -6,11 +6,18 @@ import com.vrq.revolut.db.AccountDao;
 import com.vrq.revolut.db.TransferDao;
 import com.vrq.revolut.resources.AccountResource;
 import com.vrq.revolut.resources.TransferResource;
+import com.vrq.revolut.util.DatabaseManager;
 import io.dropwizard.Application;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.hibernate.HibernateBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+
+import java.beans.PropertyVetoException;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class TransferApplication extends Application<TransferAppConfiguration> {
 
@@ -39,12 +46,19 @@ public class TransferApplication extends Application<TransferAppConfiguration> {
     public void run(final TransferAppConfiguration configuration,
                     final Environment environment) {
 
-        final AccountDao accountDao = new AccountDao(hibernate.getSessionFactory());
-        final TransferDao transferDao = new TransferDao(hibernate.getSessionFactory());
-        final AccountResource accountResource = new AccountResource(accountDao);
-        final TransferResource transferResource = new TransferResource(transferDao, accountDao);
-        environment.jersey().register(accountResource);
-        environment.jersey().register(transferResource);
+        try {
+            DatabaseManager databaseManager = DatabaseManager.getInstance(configuration.getDataSourceFactory());
+            final AccountDao accountDao = new AccountDao(databaseManager, hibernate.getSessionFactory());
+            final TransferDao transferDao = new TransferDao(hibernate.getSessionFactory());
+            final AccountResource accountResource = new AccountResource(accountDao);
+            final TransferResource transferResource = new TransferResource(transferDao, accountDao);
+            environment.jersey().register(accountResource);
+            environment.jersey().register(transferResource);
+        } catch (PropertyVetoException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 

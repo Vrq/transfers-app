@@ -21,10 +21,13 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
 import static java.math.BigDecimal.*;
 import static org.assertj.core.api.Assertions.assertThat;
+
+//fixme bez orderowania
 
 @ExtendWith(DropwizardExtensionsSupport.class)
 @TestMethodOrder(OrderAnnotation.class)
@@ -34,7 +37,6 @@ public class TransferApplicationIntegrationTests {
             new DropwizardAppExtension<>(TransferApplication.class, ResourceHelpers.resourceFilePath("test-config.yml"));
     private static final String ACCOUNTS_URI = "http://localhost:%d/accounts/";
     private static final String TRANSFERS_URI = "http://localhost:%d/transfers/";
-    private static Client client = new JerseyClientBuilder().build();
     private static GenericType<List<Account>> accountListType = new GenericType<List<Account>>() {
     };
     private static GenericType<List<Transfer>> transfersListType = new GenericType<List<Transfer>>() {
@@ -43,6 +45,8 @@ public class TransferApplicationIntegrationTests {
     @Test
     @Order(1)
     void getAccountsWithFreshDbReturnsEmptyList() {
+        Client client = new JerseyClientBuilder().build();
+
         Response response = client.target(format(ACCOUNTS_URI, RULE.getLocalPort()))
                 .request()
                 .get();
@@ -55,7 +59,9 @@ public class TransferApplicationIntegrationTests {
     @Test
     @Order(2)
     void postAccountRunParallelMultipleTimesCorrectlyCreatesAccounts() throws InterruptedException {
-        final int numberOfAccounts = 200;
+        Client client = new JerseyClientBuilder().build();
+
+        final int numberOfAccounts = 100;
         final int numberOfThreads = 10;
 
         CountDownLatch latch = new CountDownLatch(numberOfAccounts);
@@ -84,6 +90,8 @@ public class TransferApplicationIntegrationTests {
     @Test
     @Order(3)
     void getTransfersWithoutAnyTransfersMadeReturnsEmptyList() {
+        Client client = new JerseyClientBuilder().build();
+
         Response response = client.target(format(TRANSFERS_URI, RULE.getLocalPort()))
                 .request()
                 .get();
@@ -98,12 +106,14 @@ public class TransferApplicationIntegrationTests {
     void postTransferInvokedParallelMultipleTimesResultsInCorrectBalances() throws InterruptedException {
         final int numberOfTransfers = 100;
         final BigDecimal singleTransferAmount = valueOf(250);
-        final int numberOfThreads = 10;
+        final int numberOfThreads = 1;
         final int depositAmount = 100000;
         final long accountId1 = 1;
         final long accountId2 = 2;
         CountDownLatch latch = new CountDownLatch(numberOfTransfers);
         ExecutorService service = Executors.newFixedThreadPool(numberOfThreads);
+        Client client = new JerseyClientBuilder().build();
+
 
         client.target(format(ACCOUNTS_URI + accountId1 + "/deposit/"+ depositAmount, RULE.getLocalPort()))
                 .request()
@@ -140,20 +150,23 @@ public class TransferApplicationIntegrationTests {
     @Test
     @Order(5)
     void postDepositParallelMultipleTimesResultsInCorrectlyIncreasedAccountBalance() throws InterruptedException {
-        final int numberOfDeposits = 200;
+        Client client = new JerseyClientBuilder().build();
+
+        final int numberOfDeposits = 150;
         final long depositAmount = 7000000;
         final int numberOfThreads = 10;
         final long accountId = 3;
 
         CountDownLatch latch = new CountDownLatch(numberOfDeposits);
         ExecutorService service = Executors.newFixedThreadPool(numberOfThreads);
-
+        AtomicInteger atomicInteger =new AtomicInteger(0);
         for (int i = 0; i < numberOfDeposits; i++) {
             service.submit(() -> {
                 Response response = client.target(format(ACCOUNTS_URI + accountId + "/deposit/" + depositAmount, RULE.getLocalPort()))
                         .request()
                         .post(Entity.json(null));
                 latch.countDown();
+                atomicInteger.getAndIncrement();
                 assertThat(response.getStatus()).isEqualTo(200);
             });
         }
@@ -163,6 +176,7 @@ public class TransferApplicationIntegrationTests {
                 .get();
         Account depositedAccount = getAllResponse.readEntity(Account.class);
 
+        assertThat(atomicInteger.get()).isEqualTo(numberOfDeposits);
         assertThat(depositedAccount.getBalance()).isEqualTo(BigDecimal.valueOf(numberOfDeposits * depositAmount).setScale(2));
     }
 
