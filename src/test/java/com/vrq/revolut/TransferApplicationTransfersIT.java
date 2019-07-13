@@ -29,8 +29,8 @@ public class TransferApplicationTransfersIT {
     private static DropwizardAppExtension<TransferAppConfiguration> RULE = new DropwizardAppExtension<>(TransferApplication.class, ResourceHelpers.resourceFilePath("test-config.yml"));
     private static final String ACCOUNTS_URI = "http://localhost:%d/accounts/";
     private static final String TRANSFERS_URI = "http://localhost:%d/transfers/";
-    private static GenericType<List<Transfer>> transfersListType = new GenericType<List<Transfer>>() {
-    };
+    private static GenericType<List<Transfer>> transfersListType = new GenericType<List<Transfer>>() {};
+    private static final Client client = new JerseyClientBuilder().build();
 
     @Test
     void postTransferInvokedParallelMultipleTimesResultsInCorrectBalances() throws InterruptedException {
@@ -42,39 +42,23 @@ public class TransferApplicationTransfersIT {
         final long accountId2 = 2;
         CountDownLatch latch = new CountDownLatch(numberOfTransfers);
         ExecutorService service = Executors.newFixedThreadPool(numberOfThreads);
-        Client client = new JerseyClientBuilder().build();
-        client.target(
-                format(ACCOUNTS_URI, RULE.getLocalPort()))
-                .request()
-                .post(Entity.json(new Account()));
-        client.target(
-                format(ACCOUNTS_URI, RULE.getLocalPort()))
-                .request()
-                .post(Entity.json(new Account()));
+        postCreateAccount();
+        postCreateAccount();
 
-        client.target(format(ACCOUNTS_URI + accountId1 + "/deposit/" + depositAmount, RULE.getLocalPort()))
-                .request()
-                .post(Entity.json(null));
+        postDeposit(depositAmount, accountId1);
         for (int i = 0; i < numberOfTransfers; i++) {
             service.submit(() -> {
-                Response response = client.target(format(TRANSFERS_URI, RULE.getLocalPort()))
-                        .request()
-                        .post(Entity.json(new Transfer(singleTransferAmount, new Account(accountId1), new Account(accountId2))));
+                Response response = postTransfer(singleTransferAmount, accountId1, accountId2);
                 latch.countDown();
                 assertThat(response.getStatus()).isEqualTo(200);
             });
         }
         latch.await();
 
-        Response getAllTransfers = client.target(format(TRANSFERS_URI, RULE.getLocalPort()))
-                .request()
-                .get();
-        Response getAccount1 = client.target(format(ACCOUNTS_URI + accountId1, RULE.getLocalPort()))
-                .request()
-                .get();
-        Response getAccount2 = client.target(format(ACCOUNTS_URI + accountId2, RULE.getLocalPort()))
-                .request()
-                .get();
+        Response getAllTransfers = get(TRANSFERS_URI);
+        Response getAccount1 = get(ACCOUNTS_URI + accountId1);
+        Response getAccount2 = get(ACCOUNTS_URI + accountId2);
+
         List<Transfer> transfers = getAllTransfers.readEntity(transfersListType);
         BigDecimal balance1 = getAccount1.readEntity(Account.class).getBalance();
         BigDecimal balance2 = getAccount2.readEntity(Account.class).getBalance();
@@ -82,6 +66,31 @@ public class TransferApplicationTransfersIT {
         assertThat(transfers.size()).isEqualTo(numberOfTransfers);
         assertThat(balance1).isEqualTo(valueOf(75000).setScale(2));
         assertThat(balance2).isEqualTo(valueOf(25000).setScale(2));
+    }
+
+    private Response get(String transfersUri) {
+        return client.target(format(transfersUri, RULE.getLocalPort()))
+                .request()
+                .get();
+    }
+
+    private Response postTransfer(BigDecimal singleTransferAmount, long accountId1, long accountId2) {
+        return client.target(format(TRANSFERS_URI, RULE.getLocalPort()))
+                .request()
+                .post(Entity.json(new Transfer(singleTransferAmount, new Account(accountId1), new Account(accountId2))));
+    }
+
+    private void postDeposit(int depositAmount, long accountId1) {
+        client.target(format(ACCOUNTS_URI + accountId1 + "/deposit/" + depositAmount, RULE.getLocalPort()))
+                .request()
+                .post(Entity.json(null));
+    }
+
+    private void postCreateAccount() {
+        client.target(
+                format(ACCOUNTS_URI, RULE.getLocalPort()))
+                .request()
+                .post(Entity.json(new Account()));
     }
 
 }

@@ -33,28 +33,42 @@ public class TransferApplicationDepositIT {
         final int numberOfThreads = 10;
         final long accountId = 1;
 
-        client.target(
-                format(ACCOUNTS_URI, RULE.getLocalPort()))
-                .request()
-                .post(Entity.json(new Account()));
+        postCreateAccount();
         CountDownLatch latch = new CountDownLatch(numberOfDeposits);
         ExecutorService service = Executors.newFixedThreadPool(numberOfThreads);
+
         for (int i = 0; i < numberOfDeposits; i++) {
             service.submit(() -> {
-                Response response = client.target(format(ACCOUNTS_URI + accountId + "/deposit/" + depositAmount, RULE.getLocalPort()))
-                        .request()
-                        .post(Entity.json(null));
+                Response response = postDeposit(depositAmount, accountId);
                 latch.countDown();
                 assertThat(response.getStatus()).isEqualTo(200);
             });
         }
+
         latch.await();
-        Response getAllResponse = client.target(format(ACCOUNTS_URI + accountId, RULE.getLocalPort()))
-                .request()
-                .get();
+        Response getAllResponse = getAllAccounts(accountId);
         Account depositedAccount = getAllResponse.readEntity(Account.class);
 
         assertThat(depositedAccount.getBalance()).isEqualTo(BigDecimal.valueOf(numberOfDeposits * depositAmount).setScale(2));
+    }
+
+    private Response getAllAccounts(long accountId) {
+        return client.target(format(ACCOUNTS_URI + accountId, RULE.getLocalPort()))
+                    .request()
+                    .get();
+    }
+
+    private Response postDeposit(long depositAmount, long accountId) {
+        return client.target(format(ACCOUNTS_URI + accountId + "/deposit/" + depositAmount, RULE.getLocalPort()))
+                            .request()
+                            .post(Entity.json(null));
+    }
+
+    private void postCreateAccount() {
+        client.target(
+                format(ACCOUNTS_URI, RULE.getLocalPort()))
+                .request()
+                .post(Entity.json(new Account()));
     }
 
 }

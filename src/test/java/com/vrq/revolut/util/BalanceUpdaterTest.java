@@ -2,12 +2,10 @@ package com.vrq.revolut.util;
 
 import com.vrq.revolut.core.Account;
 import com.vrq.revolut.core.Transfer;
-import com.vrq.revolut.service.api.TransferService;
-import com.vrq.revolut.service.impl.TransferServiceImpl;
 import org.junit.jupiter.api.Test;
 
 import static java.math.BigDecimal.valueOf;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BalanceUpdaterTest {
     @Test

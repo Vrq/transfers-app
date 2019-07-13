@@ -12,6 +12,7 @@ import java.util.List;
 @Path("/accounts")
 @Produces(MediaType.APPLICATION_JSON)
 public class AccountResource {
+
     private final AccountService accountService;
 
     public AccountResource(AccountService accountService) {

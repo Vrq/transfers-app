@@ -17,6 +17,7 @@ import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 public class TransferDao {
+
     private static final String ERROR_MESSAGE = "Internal problem with application, please try again later";
     private static final String ID_COLUMN = "id";
     private static final String AMOUNT_COLUMN = "amount";
@@ -32,10 +33,7 @@ public class TransferDao {
 
     public Transfer create(Transfer transfer) {
         try (Connection connection = databaseManager.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(INSERT_INTO_TRANSFERS_AMOUNT_FROM_ACCOUNT_ID_TO_ACCOUNT_ID_VALUES, RETURN_GENERATED_KEYS);
-            preparedStatement.setBigDecimal(1, transfer.getAmount());
-            preparedStatement.setLong(2, transfer.getFromAccount().getId());
-            preparedStatement.setLong(3, transfer.getToAccount().getId());
+            PreparedStatement preparedStatement = createInsertStatement(transfer, connection);
             int done = preparedStatement.executeUpdate();
             if (done == 0) {
                 throw new WebApplicationException(ERROR_MESSAGE, INTERNAL_SERVER_ERROR);
@@ -60,16 +58,28 @@ public class TransferDao {
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Transfer> transfers = new ArrayList<>();
             while (resultSet.next()) {
-                Long id = resultSet.getLong(ID_COLUMN);
-                BigDecimal amount = resultSet.getBigDecimal(AMOUNT_COLUMN);
-                Long fromAccountId = resultSet.getLong(FROM_ACCOUNT_ID_COLUMN);
-                Long toAccountId = resultSet.getLong(TO_ACCOUNT_ID_COLUMN);
-                Transfer transfer = new Transfer(id, amount, new Account(fromAccountId), new Account(toAccountId));
-                transfers.add(transfer);
+                buildTransferFromResultRow(resultSet, transfers);
             }
             return transfers;
         } catch (SQLException ex) {
             throw new WebApplicationException(ERROR_MESSAGE, INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private PreparedStatement createInsertStatement(Transfer transfer, Connection connection) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(INSERT_INTO_TRANSFERS_AMOUNT_FROM_ACCOUNT_ID_TO_ACCOUNT_ID_VALUES, RETURN_GENERATED_KEYS);
+        preparedStatement.setBigDecimal(1, transfer.getAmount());
+        preparedStatement.setLong(2, transfer.getFromAccount().getId());
+        preparedStatement.setLong(3, transfer.getToAccount().getId());
+        return preparedStatement;
+    }
+
+    private void buildTransferFromResultRow(ResultSet resultSet, List<Transfer> transfers) throws SQLException {
+        Long id = resultSet.getLong(ID_COLUMN);
+        BigDecimal amount = resultSet.getBigDecimal(AMOUNT_COLUMN);
+        Long fromAccountId = resultSet.getLong(FROM_ACCOUNT_ID_COLUMN);
+        Long toAccountId = resultSet.getLong(TO_ACCOUNT_ID_COLUMN);
+        Transfer transfer = new Transfer(id, amount, new Account(fromAccountId), new Account(toAccountId));
+        transfers.add(transfer);
     }
 }

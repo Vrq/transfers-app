@@ -27,7 +27,6 @@ public class TransferResource {
         return transferService.processTransfer(transfer);
     }
 
-
     @GET
     public List<Transfer> getAll() {
         return transferService.getAllTransfers();

@@ -50,7 +50,6 @@ public class TransferApplication extends Application<TransferAppConfiguration> {
     @Override
     public void run(final TransferAppConfiguration configuration,
                     final Environment environment) {
-
         try {
             DatabaseManager databaseManager = DatabaseManagerImpl.getInstance(configuration.getDataSourceFactory());
 

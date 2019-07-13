@@ -17,6 +17,7 @@ import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 public class AccountDao {
+
     private static final String ERROR_MESSAGE = "Internal problem with application, please try again later";
     private static final String BALANCE_COLUMN = "balance";
     private static final String SELECT_FROM_ACCOUNTS_WHERE_ACCOUNTS_ID = "SELECT * FROM accounts WHERE accounts.id=?";
@@ -24,6 +25,7 @@ public class AccountDao {
     private static final String UPDATE_ACCOUNTS_SET_ACCOUNTS_BALANCE_WHERE_ACCOUNTS_ID = "UPDATE accounts SET accounts.balance=? WHERE accounts.id = ?";
     private static final String SELECT_FROM_ACCOUNTS = "SELECT * FROM accounts";
     private static final String SELECT_FROM_ACCOUNTS_WHERE_ACCOUNTS_ID_FOR_UPDATE = "SELECT * FROM accounts WHERE accounts.id=? FOR UPDATE";
+    public static final String ID_COLUMN = "id";
     private final DatabaseManager databaseManager;
 
     public AccountDao(DatabaseManager databaseManager) {
@@ -36,10 +38,7 @@ public class AccountDao {
             preparedStatement.setLong(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                BigDecimal balance = resultSet.getBigDecimal(BALANCE_COLUMN);
-                Account result = new Account(id);
-                result.setBalance(balance);
-                return result;
+                return new Account(id, resultSet.getBigDecimal(BALANCE_COLUMN));
             }
             throw new WebApplicationException(ERROR_MESSAGE, INTERNAL_SERVER_ERROR);
         } catch (SQLException ex) {
@@ -71,9 +70,7 @@ public class AccountDao {
 
     public Account update(Account updatedAccount) {
         try (Connection connection = databaseManager.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_ACCOUNTS_SET_ACCOUNTS_BALANCE_WHERE_ACCOUNTS_ID);
-            preparedStatement.setBigDecimal(1, updatedAccount.getBalance());
-            preparedStatement.setLong(2, updatedAccount.getId());
+            PreparedStatement preparedStatement = createUpdateStatement(updatedAccount, connection);
             int done = preparedStatement.executeUpdate();
             if (done == 0) {
                 throw new WebApplicationException(ERROR_MESSAGE, INTERNAL_SERVER_ERROR);
@@ -91,13 +88,8 @@ public class AccountDao {
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Account> accounts = new ArrayList<>();
             while (resultSet.next()) {
-                Long id = resultSet.getLong("id");
-                BigDecimal balance = resultSet.getBigDecimal(BALANCE_COLUMN);
-                Account account = new Account(id);
-                account.setBalance(balance);
+                Account account = new Account(resultSet.getLong(ID_COLUMN), resultSet.getBigDecimal(BALANCE_COLUMN));
                 accounts.add(account);
-                System.out.println("id: " + id + " balance: " + balance);
-
             }
             return accounts;
         } catch (SQLException ex) {
@@ -114,12 +106,8 @@ public class AccountDao {
             preparedStatement.setLong(1, accountId);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                BigDecimal balance = resultSet.getBigDecimal(BALANCE_COLUMN);
-                Account result = new Account(accountId);
-                result.setBalance(balance.add(depositAmount));
-                PreparedStatement updateStatement = connection.prepareStatement(UPDATE_ACCOUNTS_SET_ACCOUNTS_BALANCE_WHERE_ACCOUNTS_ID);
-                updateStatement.setBigDecimal(1, result.getBalance());
-                updateStatement.setLong(2, result.getId());
+                Account result = new Account(accountId, depositAmount.add(resultSet.getBigDecimal(BALANCE_COLUMN)));
+                PreparedStatement updateStatement = createUpdateStatement(result, connection);
                 int updateRowsNumber = updateStatement.executeUpdate();
                 if (updateRowsNumber == 1) {
                     connection.commit();
@@ -139,5 +127,12 @@ public class AccountDao {
                 throw new WebApplicationException(ERROR_MESSAGE, INTERNAL_SERVER_ERROR);
             }
         }
+    }
+
+    private PreparedStatement createUpdateStatement(Account updatedAccount, Connection connection) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_ACCOUNTS_SET_ACCOUNTS_BALANCE_WHERE_ACCOUNTS_ID);
+        preparedStatement.setBigDecimal(1, updatedAccount.getBalance());
+        preparedStatement.setLong(2, updatedAccount.getId());
+        return preparedStatement;
     }
 }

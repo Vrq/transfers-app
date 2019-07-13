@@ -23,17 +23,13 @@ public class TransferApplicationInitialStateIT {
     private static DropwizardAppExtension<TransferAppConfiguration> RULE = new DropwizardAppExtension<>(TransferApplication.class, ResourceHelpers.resourceFilePath("test-config.yml"));
     private static final String ACCOUNTS_URI = "http://localhost:%d/accounts/";
     private static final String TRANSFERS_URI = "http://localhost:%d/transfers/";
-    private static GenericType<List<Account>> accountListType = new GenericType<List<Account>>() {
-    };
-    private static GenericType<List<Transfer>> transfersListType = new GenericType<List<Transfer>>() {
-    };
+    private static GenericType<List<Account>> accountListType = new GenericType<List<Account>>() {};
+    private static GenericType<List<Transfer>> transfersListType = new GenericType<List<Transfer>>() {};
     private static final Client client = new JerseyClientBuilder().build();
 
     @Test
     void getAccountsWithFreshDbReturnsEmptyList() {
-        Response response = client.target(format(ACCOUNTS_URI, RULE.getLocalPort()))
-                .request()
-                .get();
+        Response response = getAll(ACCOUNTS_URI);
         List<Account> accounts = response.readEntity(accountListType);
 
         assertThat(response.getStatus()).isEqualTo(200);
@@ -42,12 +38,16 @@ public class TransferApplicationInitialStateIT {
 
     @Test
     void getTransfersWithoutAnyTransfersMadeReturnsEmptyList() {
-        Response response = client.target(format(TRANSFERS_URI, RULE.getLocalPort()))
-                .request()
-                .get();
+        Response response = getAll(TRANSFERS_URI);
         List<Transfer> transfers = response.readEntity(transfersListType);
 
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(transfers.size()).isEqualTo(0);
+    }
+
+    private Response getAll(String resourceUri) {
+        return client.target(format(resourceUri, RULE.getLocalPort()))
+                .request()
+                .get();
     }
 }

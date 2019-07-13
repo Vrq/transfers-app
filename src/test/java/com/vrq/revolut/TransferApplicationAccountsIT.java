@@ -25,8 +25,7 @@ public class TransferApplicationAccountsIT {
 
     private static DropwizardAppExtension<TransferAppConfiguration> RULE = new DropwizardAppExtension<>(TransferApplication.class, ResourceHelpers.resourceFilePath("test-config.yml"));
     private static final String ACCOUNTS_URI = "http://localhost:%d/accounts/";
-    private static GenericType<List<Account>> accountListType = new GenericType<List<Account>>() {
-    };
+    private static GenericType<List<Account>> accountListType = new GenericType<List<Account>>() {};
     private static final Client client = new JerseyClientBuilder().build();
 
     @Test
@@ -39,21 +38,28 @@ public class TransferApplicationAccountsIT {
 
         for (int i = 0; i < numberOfAccounts; i++) {
             service.submit(() -> {
-                Response response = client.target(
-                        format(ACCOUNTS_URI, RULE.getLocalPort()))
-                        .request()
-                        .post(Entity.json(new Account()));
-
+                Response response = postCreateAccount();
                 latch.countDown();
                 assertThat(response.getStatus()).isEqualTo(200);
             });
         }
         latch.await();
-        Response getAllResponse = client.target(format(ACCOUNTS_URI, RULE.getLocalPort()))
-                .request()
-                .get();
+        Response getAllResponse = getAllAccounts();
         List<Account> accounts = getAllResponse.readEntity(accountListType);
 
         assertThat(accounts.size()).isEqualTo(numberOfAccounts);
+    }
+
+    private Response getAllAccounts() {
+        return client.target(format(ACCOUNTS_URI, RULE.getLocalPort()))
+                    .request()
+                    .get();
+    }
+
+    private Response postCreateAccount() {
+        return client.target(
+                            format(ACCOUNTS_URI, RULE.getLocalPort()))
+                            .request()
+                            .post(Entity.json(new Account()));
     }
 }

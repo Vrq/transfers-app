@@ -34,5 +34,4 @@ public class DatabaseManagerImpl implements DatabaseManager {
     public Connection getConnection() throws SQLException {
         return this.comboPooledDataSource.getConnection();
     }
-
 }
