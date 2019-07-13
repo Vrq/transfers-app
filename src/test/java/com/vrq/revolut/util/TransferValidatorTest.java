@@ -62,5 +62,4 @@ class TransferValidatorTest {
 
         transferValidator.validate(testObject, sender, receiver);
     }
-
 }
