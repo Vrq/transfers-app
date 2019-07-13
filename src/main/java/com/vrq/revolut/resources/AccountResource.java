@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Path("/accounts")
 @Produces(MediaType.APPLICATION_JSON)
 public class AccountResource {
-
     private final AccountDao accountDao;
 
     public AccountResource(AccountDao accountDao) {

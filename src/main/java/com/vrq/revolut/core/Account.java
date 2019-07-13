@@ -4,12 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-
-import static java.math.BigDecimal.valueOf;
 
 
 @Entity
@@ -26,9 +23,8 @@ public class Account {
     }
 
     @Column(name = "balance", nullable = false)
-    @NotNull
     @JsonProperty
-    private BigDecimal balance = valueOf(0);
+    private BigDecimal balance;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "fromAccount")
     @JsonIgnoreProperties({"fromAccount", "toAccount"})

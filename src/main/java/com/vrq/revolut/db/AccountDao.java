@@ -1,28 +1,25 @@
 package com.vrq.revolut.db;
 
 import com.vrq.revolut.core.Account;
-import com.vrq.revolut.core.Transfer;
 import com.vrq.revolut.util.DatabaseManager;
-import io.dropwizard.hibernate.AbstractDAO;
-import org.hibernate.SessionFactory;
 
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.math.BigDecimal.ZERO;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
-import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
 
-public class AccountDao extends AbstractDAO<Account> {
+public class AccountDao {
     private final DatabaseManager databaseManager;
     private AtomicInteger counter = new AtomicInteger(0);
 
-    public AccountDao(DatabaseManager databaseManager, SessionFactory sessionFactory) {
-        super(sessionFactory);
+    public AccountDao(DatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
     }
 
@@ -109,7 +106,7 @@ public class AccountDao extends AbstractDAO<Account> {
     public Account deposit(long accountId, BigDecimal depositAmount) {
         Connection connection = null;
 
-        try  {
+        try {
             connection = databaseManager.getConnection();
             connection.setAutoCommit(false);
             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM accounts WHERE accounts.id=? FOR UPDATE");

@@ -48,8 +48,8 @@ public class TransferApplication extends Application<TransferAppConfiguration> {
 
         try {
             DatabaseManager databaseManager = DatabaseManager.getInstance(configuration.getDataSourceFactory());
-            final AccountDao accountDao = new AccountDao(databaseManager, hibernate.getSessionFactory());
-            final TransferDao transferDao = new TransferDao(hibernate.getSessionFactory());
+            final AccountDao accountDao = new AccountDao(databaseManager);
+            final TransferDao transferDao = new TransferDao(databaseManager);
             final AccountResource accountResource = new AccountResource(accountDao);
             final TransferResource transferResource = new TransferResource(transferDao, accountDao);
             environment.jersey().register(accountResource);

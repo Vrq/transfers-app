@@ -33,7 +33,6 @@ public class TransferResource {
     }
 
     @POST
-    @UnitOfWork
     public Transfer add(@Valid Transfer transfer) {
 
         Account fromAccount = accountDao.findById(transfer.getFromAccount().getId());
@@ -48,7 +47,6 @@ public class TransferResource {
     }
 
     @GET
-    @UnitOfWork
     public List<Transfer> getAll() {
         return transferDao.getAll();
     }
