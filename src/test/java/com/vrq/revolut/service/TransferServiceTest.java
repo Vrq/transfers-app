@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.WebApplicationException;
 
-import static com.vrq.revolut.service.TransferServiceImpl.performTransfer;
-import static com.vrq.revolut.service.TransferServiceImpl.validate;
+import static com.vrq.revolut.service.impl.TransferServiceImpl.performTransfer;
+import static com.vrq.revolut.service.impl.TransferServiceImpl.validate;
 import static java.math.BigDecimal.valueOf;
 import static org.junit.jupiter.api.Assertions.*;
 

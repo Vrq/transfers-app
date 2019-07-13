@@ -2,7 +2,7 @@ package com.vrq.revolut.resources;
 
 
 import com.vrq.revolut.core.Account;
-import com.vrq.revolut.service.AccountService;
+import com.vrq.revolut.service.api.AccountService;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

@@ -1,9 +1,9 @@
-package com.vrq.revolut.db;
+package com.vrq.revolut.db.impl;
 
 import com.vrq.revolut.core.Account;
 import com.vrq.revolut.core.Transfer;
+import com.vrq.revolut.db.api.DatabaseManager;
 
-import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 

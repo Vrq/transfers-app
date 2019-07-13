@@ -1,4 +1,4 @@
-package com.vrq.revolut.service;
+package com.vrq.revolut.service.api;
 
 import com.vrq.revolut.core.Transfer;
 

@@ -1,9 +1,10 @@
-package com.vrq.revolut.service;
+package com.vrq.revolut.service.impl;
 
 import com.vrq.revolut.core.Account;
 import com.vrq.revolut.core.Transfer;
-import com.vrq.revolut.db.AccountDao;
-import com.vrq.revolut.db.TransferDao;
+import com.vrq.revolut.db.impl.TransferDao;
+import com.vrq.revolut.service.api.AccountService;
+import com.vrq.revolut.service.api.TransferService;
 
 import javax.validation.Valid;
 import javax.ws.rs.WebApplicationException;

@@ -1,8 +1,8 @@
-package com.vrq.revolut.db;
+package com.vrq.revolut.db.impl;
 
 
-import com.google.inject.Singleton;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.vrq.revolut.db.api.DatabaseManager;
 import io.dropwizard.db.DataSourceFactory;
 
 import java.beans.PropertyVetoException;

@@ -1,8 +1,8 @@
-package com.vrq.revolut.service;
+package com.vrq.revolut.service.impl;
 
 import com.vrq.revolut.core.Account;
-import com.vrq.revolut.db.AccountDao;
-import com.vrq.revolut.db.DatabaseManagerImpl;
+import com.vrq.revolut.db.impl.AccountDao;
+import com.vrq.revolut.service.api.AccountService;
 
 import java.math.BigDecimal;
 import java.util.List;

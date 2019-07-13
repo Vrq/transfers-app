@@ -2,8 +2,7 @@ package com.vrq.revolut.resources;
 
 
 import com.vrq.revolut.core.Transfer;
-import com.vrq.revolut.service.AccountService;
-import com.vrq.revolut.service.TransferService;
+import com.vrq.revolut.service.api.TransferService;
 
 import javax.validation.Valid;
 import javax.ws.rs.GET;

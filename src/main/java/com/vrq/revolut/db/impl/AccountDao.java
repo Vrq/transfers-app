@@ -1,6 +1,7 @@
-package com.vrq.revolut.db;
+package com.vrq.revolut.db.impl;
 
 import com.vrq.revolut.core.Account;
+import com.vrq.revolut.db.api.DatabaseManager;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
