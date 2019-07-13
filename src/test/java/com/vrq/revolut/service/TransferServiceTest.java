@@ -5,10 +5,9 @@ import com.vrq.revolut.core.Transfer;
 import org.junit.jupiter.api.Test;
 
 import javax.ws.rs.WebApplicationException;
-import java.math.BigDecimal;
 
-import static com.vrq.revolut.service.TransferService.performTransfer;
-import static com.vrq.revolut.service.TransferService.validate;
+import static com.vrq.revolut.service.TransferServiceImpl.performTransfer;
+import static com.vrq.revolut.service.TransferServiceImpl.validate;
 import static java.math.BigDecimal.valueOf;
 import static org.junit.jupiter.api.Assertions.*;
 

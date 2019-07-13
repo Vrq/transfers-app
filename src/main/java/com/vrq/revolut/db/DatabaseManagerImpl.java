@@ -1,20 +1,20 @@
-package com.vrq.revolut.util;
+package com.vrq.revolut.db;
 
 
+import com.google.inject.Singleton;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import io.dropwizard.db.DataSourceFactory;
 
 import java.beans.PropertyVetoException;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class DatabaseManager {
+public class DatabaseManagerImpl implements DatabaseManager {
 
-    private static DatabaseManager databaseManager;
+    private static DatabaseManagerImpl databaseManager;
     private ComboPooledDataSource comboPooledDataSource;
 
-    private DatabaseManager(DataSourceFactory dataSourceFactory) throws PropertyVetoException {
+    private DatabaseManagerImpl(DataSourceFactory dataSourceFactory) throws PropertyVetoException {
         comboPooledDataSource = new ComboPooledDataSource();
         comboPooledDataSource.setDriverClass(dataSourceFactory.getDriverClass());
         comboPooledDataSource.setJdbcUrl(dataSourceFactory.getUrl());
@@ -22,9 +22,9 @@ public class DatabaseManager {
         comboPooledDataSource.setPassword(dataSourceFactory.getPassword());
     }
 
-    public static DatabaseManager getInstance(DataSourceFactory dataSourceFactory) throws PropertyVetoException {
+    public static DatabaseManagerImpl getInstance(DataSourceFactory dataSourceFactory) throws PropertyVetoException {
         if (databaseManager == null) {
-            databaseManager = new DatabaseManager(dataSourceFactory);
+            databaseManager = new DatabaseManagerImpl(dataSourceFactory);
             return databaseManager;
         } else {
             return databaseManager;

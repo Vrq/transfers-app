@@ -2,10 +2,8 @@ package com.vrq.revolut.db;
 
 import com.vrq.revolut.core.Account;
 import com.vrq.revolut.core.Transfer;
-import com.vrq.revolut.util.DatabaseManager;
-import io.dropwizard.hibernate.AbstractDAO;
-import org.hibernate.SessionFactory;
 
+import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,12 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.math.BigDecimal.ZERO;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
-public class TransferDao  {
+public class TransferDao {
     private final DatabaseManager databaseManager;
-    private AtomicInteger counter = new AtomicInteger(0);
 
     public TransferDao(DatabaseManager databaseManager) {
         this.databaseManager = databaseManager;

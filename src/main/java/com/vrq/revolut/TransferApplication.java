@@ -3,10 +3,15 @@ package com.vrq.revolut;
 import com.vrq.revolut.core.Account;
 import com.vrq.revolut.core.Transfer;
 import com.vrq.revolut.db.AccountDao;
+import com.vrq.revolut.db.DatabaseManager;
 import com.vrq.revolut.db.TransferDao;
 import com.vrq.revolut.resources.AccountResource;
 import com.vrq.revolut.resources.TransferResource;
-import com.vrq.revolut.util.DatabaseManager;
+import com.vrq.revolut.db.DatabaseManagerImpl;
+import com.vrq.revolut.service.AccountService;
+import com.vrq.revolut.service.AccountServiceImpl;
+import com.vrq.revolut.service.TransferService;
+import com.vrq.revolut.service.TransferServiceImpl;
 import io.dropwizard.Application;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.hibernate.HibernateBundle;
@@ -14,10 +19,6 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
 import java.beans.PropertyVetoException;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 public class TransferApplication extends Application<TransferAppConfiguration> {
 
@@ -47,19 +48,22 @@ public class TransferApplication extends Application<TransferAppConfiguration> {
                     final Environment environment) {
 
         try {
-            DatabaseManager databaseManager = DatabaseManager.getInstance(configuration.getDataSourceFactory());
+            DatabaseManager databaseManager = DatabaseManagerImpl.getInstance(configuration.getDataSourceFactory());
+
             final AccountDao accountDao = new AccountDao(databaseManager);
             final TransferDao transferDao = new TransferDao(databaseManager);
-            final AccountResource accountResource = new AccountResource(accountDao);
-            final TransferResource transferResource = new TransferResource(transferDao, accountDao);
+
+            final AccountService accountService = new AccountServiceImpl(accountDao);
+            final TransferService transferService = new TransferServiceImpl(accountService, transferDao);
+
+            final AccountResource accountResource = new AccountResource(accountService);
+            final TransferResource transferResource = new TransferResource(transferService);
+
             environment.jersey().register(accountResource);
             environment.jersey().register(transferResource);
+
         } catch (PropertyVetoException e) {
             e.printStackTrace();
         }
-
-
     }
-
-
 }

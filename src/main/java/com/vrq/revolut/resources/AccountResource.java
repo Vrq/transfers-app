@@ -2,43 +2,41 @@ package com.vrq.revolut.resources;
 
 
 import com.vrq.revolut.core.Account;
-import com.vrq.revolut.db.AccountDao;
-import io.dropwizard.hibernate.UnitOfWork;
+import com.vrq.revolut.service.AccountService;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Path("/accounts")
 @Produces(MediaType.APPLICATION_JSON)
 public class AccountResource {
-    private final AccountDao accountDao;
+    private final AccountService accountService;
 
-    public AccountResource(AccountDao accountDao) {
-        this.accountDao = accountDao;
+    public AccountResource(AccountService accountService) {
+        this.accountService = accountService;
     }
 
     @POST
     public Account create() {
-        return accountDao.create();
+        return accountService.createAccount();
     }
 
     @GET
     public List<Account> getAll(){
-        return accountDao.getAll();
+        return accountService.getAllAccounts();
     }
 
     @GET
     @Path("/{id}")
     public Account getById(@PathParam("id") long id){
-        return accountDao.findById(id);
+        return accountService.findAccountById(id);
     }
 
     @POST
     @Path("/{id}/deposit/{amount}")
     public Account deposit(@PathParam("id") long accountId, @PathParam("amount")BigDecimal depositAmount){
-        return accountDao.deposit(accountId, depositAmount);
+        return accountService.depositToAccount(accountId, depositAmount);
     }
 }
