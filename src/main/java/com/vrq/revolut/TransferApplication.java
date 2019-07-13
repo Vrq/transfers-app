@@ -12,6 +12,10 @@ import com.vrq.revolut.service.api.AccountService;
 import com.vrq.revolut.service.impl.AccountServiceImpl;
 import com.vrq.revolut.service.api.TransferService;
 import com.vrq.revolut.service.impl.TransferServiceImpl;
+import com.vrq.revolut.util.BalanceUpdater;
+import com.vrq.revolut.util.BalanceUpdaterImpl;
+import com.vrq.revolut.util.TransferValidator;
+import com.vrq.revolut.util.TransferValidatorImpl;
 import io.dropwizard.Application;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.hibernate.HibernateBundle;
@@ -52,9 +56,11 @@ public class TransferApplication extends Application<TransferAppConfiguration> {
 
             final AccountDao accountDao = new AccountDao(databaseManager);
             final TransferDao transferDao = new TransferDao(databaseManager);
+            final TransferValidator transferValidator = new TransferValidatorImpl();
+            final BalanceUpdater balanceUpdater = new BalanceUpdaterImpl();
 
             final AccountService accountService = new AccountServiceImpl(accountDao);
-            final TransferService transferService = new TransferServiceImpl(accountService, transferDao);
+            final TransferService transferService = new TransferServiceImpl(accountService, transferDao, transferValidator, balanceUpdater);
 
             final AccountResource accountResource = new AccountResource(accountService);
             final TransferResource transferResource = new TransferResource(transferService);

@@ -1,5 +1,6 @@
 package com.vrq.revolut.service.api;
 
+import com.vrq.revolut.core.Account;
 import com.vrq.revolut.core.Transfer;
 
 import java.util.List;

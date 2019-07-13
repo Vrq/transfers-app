@@ -5,11 +5,11 @@ import com.vrq.revolut.core.Transfer;
 import com.vrq.revolut.db.impl.TransferDao;
 import com.vrq.revolut.service.api.AccountService;
 import com.vrq.revolut.service.api.TransferService;
+import com.vrq.revolut.util.BalanceUpdater;
+import com.vrq.revolut.util.TransferValidator;
 
 import javax.validation.Valid;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,34 +18,15 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TransferServiceImpl implements TransferService {
     private final AccountService accountService;
     private final TransferDao transferDao;
+    private final TransferValidator transferValidator;
+    private final BalanceUpdater balanceUpdater;
     private final Map<Long, ReentrantLock> accountLocks = new ConcurrentHashMap<>();
 
-    public TransferServiceImpl(AccountService accountService, TransferDao transferDao) {
+    public TransferServiceImpl(AccountService accountService, TransferDao transferDao, TransferValidator transferValidator, BalanceUpdater balanceUpdater) {
         this.accountService = accountService;
         this.transferDao = transferDao;
-    }
-
-    public static void validate(@Valid Transfer transfer, Account fromAccount) {
-        if(transfer.getAmount().compareTo(BigDecimal.ZERO) < 0) {
-            throw new WebApplicationException("Cannot make transfers with amount below 0", Response.Status.BAD_REQUEST);
-        }
-        if(transfer.getFromAccount() == null || transfer.getToAccount() == null) {
-            throw new WebApplicationException("Transfer recipients not specified",Response.Status.BAD_REQUEST);
-
-        }
-        if(fromAccount.getBalance().compareTo(transfer.getAmount())< 0) {
-            throw new WebApplicationException("Insufficient balance of the sender account",Response.Status.BAD_REQUEST);
-        }
-    }
-
-
-
-    //TODO: Should be a pure function that returns TransferResult
-    public static void performTransfer(@Valid Transfer transfer, Account fromAccount, Account toAccount) {
-        fromAccount.setBalance(fromAccount.getBalance().subtract(transfer.getAmount()));
-        toAccount.setBalance(toAccount.getBalance().add(transfer.getAmount()));
-        transfer.setFromAccount(fromAccount);
-        transfer.setToAccount(toAccount);
+        this.transferValidator = transferValidator;
+        this.balanceUpdater = balanceUpdater;
     }
 
     @Override
@@ -80,12 +61,13 @@ public class TransferServiceImpl implements TransferService {
     private Transfer perform(@Valid Transfer transfer) {
         Account fromAccount = accountService.findAccountById(transfer.getFromAccount().getId());
         Account toAccount = accountService.findAccountById(transfer.getToAccount().getId());
-        validate(transfer, fromAccount);
+        transferValidator.validate(transfer, fromAccount, toAccount);
 
-        performTransfer(transfer, fromAccount, toAccount);
+        balanceUpdater.updateBalances(transfer, fromAccount, toAccount);
 
         accountService.updateAccount(fromAccount);
         accountService.updateAccount(toAccount);
+
         return transferDao.create(transfer);
     }
 }
