@@ -27,13 +27,9 @@ public class Account {
     private BigDecimal balance;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "fromAccount")
-    @JsonIgnoreProperties({"fromAccount", "toAccount"})
-    @JsonProperty
     private List<Transfer> transfersFrom;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "toAccount")
-    @JsonIgnoreProperties({"fromAccount", "toAccount"})
-    @JsonProperty
     private List<Transfer> transfersTo;
 
     public Account() {

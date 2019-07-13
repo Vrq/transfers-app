@@ -11,9 +11,8 @@ How to start the transfers-app application
 Some caveats:
 ---
 - /deposit endpoint should be restricted
-- the TransferApplicationIntegrationTests is testing correct concurrent processing
-and shares application instance and db - in the future it should be broken
-down into scenarios that recreate the testing environment every time
+- need to add a dependency injection framework (like Guice) in the future
+- more fine grained error handling within the DAOs is recommended
 
 Technologies used:
 ---

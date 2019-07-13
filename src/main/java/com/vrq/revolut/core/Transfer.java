@@ -25,13 +25,13 @@ public class Transfer {
     @ManyToOne
     @JoinColumn(name = "from_account_id")
     @JsonProperty
-    @JsonIgnoreProperties({"transfersFrom", "transfersTo"})
+    @JsonIgnoreProperties({"transfersFrom", "transfersTo", "balance"})
     private Account fromAccount;
 
     @ManyToOne
     @JoinColumn(name = "to_account_id")
     @JsonProperty
-    @JsonIgnoreProperties({"transfersFrom", "transfersTo"})
+    @JsonIgnoreProperties({"transfersFrom", "transfersTo", "balance"})
     private Account toAccount;
 
     public Transfer() {
